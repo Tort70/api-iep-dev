@@ -52,6 +52,7 @@ class IepIntake extends Model
 
         'locked_at',
         'lock_reason',
+        'auto_delete_at',
     ];
 
     /*
@@ -66,6 +67,7 @@ class IepIntake extends Model
 
         'submitted_at'  => 'datetime',
         'locked_at'     => 'datetime',
+        'auto_delete_at' => 'datetime',
     ];
 
     /*
@@ -80,7 +82,7 @@ class IepIntake extends Model
     protected static function booted()
     {
         static::updating(function (self $intake) {
-            if ($intake->isLocked()) {
+            if (! is_null($intake->getOriginal('locked_at'))) {
                 $immutableFields = [
                     'locked_at',
                     'lock_reason',
@@ -134,6 +136,7 @@ class IepIntake extends Model
      * This represents a legal / procedural boundary:
      * - intake becomes immutable
      * - submission metadata is recorded
+     * - auto-delete timestamp is updated based on submitted retention period
      *
      * @param int $userId  ID of the user submitting the intake
      * @param string $reason  Reason for locking the intake
@@ -150,12 +153,15 @@ class IepIntake extends Model
             throw new RuntimeException('Only draft intakes can be submitted.');
         }
 
+        $submittedRetentionDays = config('iep.retention.submitted', 180);
+
         $this->status = self::STATUS_SUBMITTED;
         $this->submitted_at = now();
         $this->submitted_by_user_id = $userId;
 
         $this->locked_at = now();
         $this->lock_reason = $reason;
+        $this->auto_delete_at = now()->addDays($submittedRetentionDays);
 
         $this->save();
 

@@ -40,5 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/intakes', [IepIntakeController::class, 'store']);
     Route::get('/intakes/{intake}', [IepIntakeController::class, 'show']);
     Route::patch('/intakes/{intake}', [IepIntakeController::class, 'update']);
+    Route::delete('/intakes/{intake}', [IepIntakeController::class, 'destroy']);
     Route::post('/intakes/{intake}/submit', [IepIntakeController::class, 'submit']);
+    Route::post('/intakes/{sourceIntake}/seed', [IepIntakeController::class, 'seed']);
 });
