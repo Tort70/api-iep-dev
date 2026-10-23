@@ -37,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // IEP Intakes
     Route::get('/intakes', [IepIntakeController::class, 'index']);
+    Route::get('/intakes/draft', [IepIntakeController::class, 'getDraft']);
     Route::post('/intakes', [IepIntakeController::class, 'store']);
     Route::get('/intakes/{intake}', [IepIntakeController::class, 'show']);
     Route::patch('/intakes/{intake}', [IepIntakeController::class, 'update']);

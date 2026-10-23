@@ -15,7 +15,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Delete expired IEP intakes daily at 2:00 AM
+        $schedule->command('iep:delete-expired')
+            ->dailyAt('02:00')
+            ->withoutOverlapping()
+            ->onOneServer();
     }
 
     /**

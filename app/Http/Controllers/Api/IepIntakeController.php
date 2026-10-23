@@ -22,6 +22,24 @@ class IepIntakeController extends Controller
     }
 
     /**
+     * Get the authenticated user's existing draft intake.
+     * Returns 404 if no draft exists.
+     */
+    public function getDraft(Request $request)
+    {
+        $draft = IepIntake::where('created_by_user_id', $request->user()->id)
+            ->where('status', IepIntake::STATUS_DRAFT)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$draft) {
+            return response()->json(['message' => 'No draft found'], 404);
+        }
+
+        return response()->json($draft);
+    }
+
+    /**
      * Store a new IEP intake as a draft.
      */
     public function store(Request $request)

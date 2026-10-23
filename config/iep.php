@@ -1,26 +1,19 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
-    | IEP Intake Retention Periods
+    | IEP Intake Retention Policies
     |--------------------------------------------------------------------------
     |
-    | These values determine how long draft and submitted IEP intakes are
-    | retained before automatic deletion. All values are in days.
-    |
-    | Orvis is NOT a system of record. These retention periods ensure
-    | temporary data does not persist beyond its useful lifecycle.
+    | These values control how long IEP intake records are retained based
+    | on their status. Draft intakes are deleted after a shorter period,
+    | while submitted intakes are retained longer for compliance.
     |
     */
 
     'retention' => [
-        // How long draft intakes are retained (days)
-        'draft' => env('IEP_DRAFT_RETENTION_DAYS', 90),
-
-        // How long submitted intakes are retained (days)
-        'submitted' => env('IEP_SUBMITTED_RETENTION_DAYS', 180),
+        'draft' => env('IEP_RETENTION_DRAFT_DAYS', 90),
+        'submitted' => env('IEP_RETENTION_SUBMITTED_DAYS', 365),
     ],
-
 ];

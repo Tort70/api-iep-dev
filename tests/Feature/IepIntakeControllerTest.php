@@ -56,6 +56,100 @@ class IepIntakeControllerTest extends TestCase
     }
 
     /**
+     * Test getDraft() returns the most recent draft intake.
+     */
+    public function test_get_draft_returns_most_recent_draft()
+    {
+        $user = User::factory()->create();
+
+        // Create multiple drafts (most recent will be returned)
+        $olderDraft = IepIntake::create([
+            'district_id' => 'DIST-001',
+            'created_by_user_id' => $user->id,
+            'student_identifier' => 'STUDENT-001',
+            'status' => IepIntake::STATUS_DRAFT,
+            'raw_notes' => ['note' => 'older draft'],
+        ]);
+
+        sleep(1); // Ensure different timestamps
+
+        $newerDraft = IepIntake::create([
+            'district_id' => 'DIST-001',
+            'created_by_user_id' => $user->id,
+            'student_identifier' => 'STUDENT-002',
+            'status' => IepIntake::STATUS_DRAFT,
+            'raw_notes' => ['note' => 'newer draft'],
+        ]);
+
+        $response = $this->withoutMiddleware()
+            ->actingAs($user, 'sanctum')
+            ->getJson('/api/intakes/draft');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'id' => $newerDraft->id,
+                'status' => IepIntake::STATUS_DRAFT,
+            ]);
+    }
+
+    /**
+     * Test getDraft() returns 404 when no draft exists.
+     */
+    public function test_get_draft_returns_404_when_no_draft_exists()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson('/api/intakes/draft');
+
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'No draft found']);
+    }
+
+    /**
+     * Test getDraft() does not return submitted intakes.
+     */
+    public function test_get_draft_does_not_return_submitted_intakes()
+    {
+        $user = User::factory()->create();
+
+        // Create a submitted intake
+        IepIntake::create([
+            'district_id' => 'DIST-001',
+            'created_by_user_id' => $user->id,
+            'student_identifier' => 'STUDENT-001',
+            'status' => IepIntake::STATUS_SUBMITTED,
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson('/api/intakes/draft');
+
+        $response->assertStatus(404);
+    }
+
+    /**
+     * Test getDraft() does not return other users' drafts.
+     */
+    public function test_get_draft_does_not_return_other_users_drafts()
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        // Create draft for other user
+        IepIntake::create([
+            'district_id' => 'DIST-001',
+            'created_by_user_id' => $otherUser->id,
+            'student_identifier' => 'STUDENT-001',
+            'status' => IepIntake::STATUS_DRAFT,
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson('/api/intakes/draft');
+
+        $response->assertStatus(404);
+    }
+
+    /**
      * Test store() creates a draft intake.
      */
     public function test_store_creates_draft_intake()

@@ -14,11 +14,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
+        // Only seed dev user in local/dev environments
+        if (app()->environment(['local', 'development'])) {
+            $devUser = \App\Models\User::firstOrCreate(
+                ['email' => 'dev@orvis.local'],
+                [
+                    'name' => 'Orvis Dev User',
+                    'password' => bcrypt('password'),
+                ]
+            );
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+            // Create a long-lived token for dev use
+            // Delete existing tokens to ensure clean state
+            $devUser->tokens()->delete();
+
+            $token = $devUser->createToken('dev-token')->plainTextToken;
+
+            $this->command->info('==============================================');
+            $this->command->info('DEV USER CREATED:');
+            $this->command->info('Email: dev@orvis.local');
+            $this->command->info('Password: password');
+            $this->command->info('==============================================');
+            $this->command->info('DEV BEARER TOKEN:');
+            $this->command->info($token);
+            $this->command->info('==============================================');
+            $this->command->info('Use this token in your React app Authorization header:');
+            $this->command->info('Authorization: Bearer ' . $token);
+            $this->command->info('==============================================');
+        }
     }
 }
